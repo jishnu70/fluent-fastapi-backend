@@ -41,7 +41,7 @@ def create_refresh_token(data:dict, expires_day:int=ExpireDates.REFRESH_TOKEN_EX
     return jwt.encode(to_encode, SECRET_KEY, ALGORITHM) # type: ignore
 
 # decode refresh token
-def decode_refresh_token(token:str):
+def decode_jwt_token(token:str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]) # type: ignore
         return payload
@@ -51,7 +51,7 @@ def decode_refresh_token(token:str):
     
 # create a new access token based on the refresh token
 def get_new_access_token_from_refresh_token(token:str):
-    payload = decode_refresh_token(token)
+    payload = decode_jwt_token(token)
     if payload and payload.get("type")=="refresh":
          user_data = {
             "sub": payload.get("sub"),

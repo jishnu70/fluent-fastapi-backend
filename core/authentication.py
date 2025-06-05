@@ -3,13 +3,16 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
 from sqlalchemy.future import select
-from models import User
-from schemas import UserCreate
+from models.User import User
+from schemas import UserSchema
 from core import encryption
+import logging
+
+logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-async def create_new_user(db: AsyncSession, user_data:UserCreate.UserCreate):
+async def create_new_user(db: AsyncSession, user_data:UserSchema.UserCreate):
     hash_password = encryption.hash_password(user_data.password)
     user = User.User(
         user_name = user_data.username,
@@ -27,6 +30,7 @@ async def get_user_by_username(db:AsyncSession, username:str):
         user = await db.execute(select(User).filter_by(user_name=username))
         return user.scalar_one_or_none()
     except Exception as e:
+        logger.error(f"Error fetching user by username: {e}")
         return None
     
 async def get_current_user(db:AsyncSession, token:str = Depends(oauth2_scheme)):
@@ -41,8 +45,10 @@ async def get_current_user(db:AsyncSession, token:str = Depends(oauth2_scheme)):
         if username is None:
             raise credentials_exception
     except JWTError:
+        logger.error(f"Error fetching user by username: {JWTError}")
         raise credentials_exception
     except Exception as e:
+        logger.error(f"Error fetching user by username: {e}")
         raise credentials_exception
     user = await get_user_by_username(db, username)
     if user is None:

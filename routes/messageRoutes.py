@@ -127,4 +127,4 @@ async def core_chatting(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message":"Websocket disconnected"}
         )
-        await chat_hub.disconnect()
+        await chat_hub.disconnect(websocket, user_id)

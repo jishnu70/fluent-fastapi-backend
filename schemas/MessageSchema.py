@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+from schemas.PartnerSchema import PartnerInfoResponse
+
 class MessageCreate(BaseModel):
     receiverID: int
     content: str
@@ -19,3 +21,7 @@ class MessageResponse(BaseModel):
     class Config:
         from_attributes = True  # Needed to return SQLAlchemy model instances
         allow_population_by_field_name = True
+
+class MessageChatList(BaseModel):
+    partner: PartnerInfoResponse
+    message: MessageResponse

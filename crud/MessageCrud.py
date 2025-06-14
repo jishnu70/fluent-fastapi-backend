@@ -7,6 +7,8 @@ from models.Message import Message
 from models.User import User
 from schemas.MessageSchema import MessageCreate
 import logging
+from typing import Optional
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -31,26 +33,61 @@ async def create_message(db: AsyncSession, payload:MessageCreate, senderID: int)
     except Exception as e:
         logger.error(e)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail={"message":str(e)})
-    
-async def get_messages(db:AsyncSession, userID: int, partnerID: int):
+
+async def get_messages(
+    db:AsyncSession,
+    userID: int,
+    partnerID: int,
+    before: Optional[datetime] = None,
+    limit: int = 20,
+):
     try:
         result = await db.execute(select(User).filter_by(id=partnerID))
         partner = result.scalar_one_or_none()
         if not partner:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, detail={"message": "receiver does not exist"})
-        
-        messagesResult = await db.execute(
-            select(Message)
-            .where(
-                and_(
-                    or_(Message.sender_id==userID, Message.receiver_id==userID),
-                    or_(Message.sender_id==partner.id, Message.receiver_id==partner.id)
-                )
+
+        query = select(Message).where(
+            or_(
+                and_(Message.sender_id==userID, Message.receiver_id==partner.id),
+                and_(Message.sender_id==partner.id, Message.receiver_id==userID)
             )
-            .options(joinedload(Message.attachment))
         )
+
+        if before:
+            query = query.where(Message.timestamp < before)
+
+        query = query.order_by(Message.timestamp.desc()).limit(limit).options(joinedload(Message.attachment))
+
+        messagesResult = await db.execute(query)
         messages = messagesResult.scalars().all()
         return messages
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail={"message": str(e)})
+
+async def get_latest_messages_per_partner(db:AsyncSession, userID: int):
+    try:
+        result = await db.execute(
+            select(Message)
+            .where(
+                or_(Message.sender_id==userID, Message.receiver_id==userID)
+            )
+            .order_by(Message.timestamp.desc())
+            .options(joinedload(Message.attachment))
+        )
+        messages = result.scalars().all()
+
+        latest_messages = {}
+
+        for chat in messages:
+            partner_id = chat.receiver_id if (chat.sender_id == userID) else chat.sender_id
+            partner_result = await db.execute(select(User).filter_by(id=partner_id))
+            partner = partner_result.scalars().first()
+            if partner not in latest_messages:
+                latest_messages[partner] = chat
+
+        return list(latest_messages.values())
     except Exception as e:
         logger.error(e)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail={"message": str(e)})

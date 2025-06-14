@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
+from typing import Optional
+from datetime import datetime
 import json
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError
@@ -9,9 +11,9 @@ from core.authentication import get_current_user, get_user_by_username
 from models.User import User
 from schemas.PartnerSchema import PartnerInfoResponse
 from core.encryption import decode_jwt_token
-from schemas.MessageSchema import MessageCreate, MessageResponse
+from schemas.MessageSchema import MessageChatList, MessageCreate, MessageResponse
 from core.chatHub import get_chatHub, ChatHub
-from crud.MessageCrud import create_message, get_messages
+from crud.MessageCrud import create_message, get_messages, get_latest_messages_per_partner
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,8 +44,18 @@ async def get_partner_info(partnerID: int,user: User = Depends(get_current_user)
             detail={"message":str(e)}
         )
 
+@router.get("/chat_list", response_model=list[MessageChatList])
+async def get_chat_list(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    return await get_latest_messages_per_partner(db, user.id)
+
 @router.get("/all_messages", response_model=list[MessageResponse])
-async def get_all_messages(partnerID: int,user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_all_messages(
+    partnerID: int,
+    before: Optional[datetime] = None,
+    limit: int = 20,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     try:
         result = await db.execute(select(User).filter_by(id=partnerID))
         partner = result.scalar_one_or_none()
@@ -127,4 +139,5 @@ async def core_chatting(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message":"Websocket disconnected"}
         )
+    finally:
         await chat_hub.disconnect(websocket, user_id)

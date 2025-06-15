@@ -11,7 +11,6 @@ class Message(Base):
     receiver_id = Column(Integer, ForeignKey("users.id"))
     content = Column(String, nullable=False)
     message_type = Column(String, default="text")
-    attachment_id = Column(Integer, ForeignKey("attachments.id"), nullable=True)
     timestamp = Column(DateTime, default=datetime.now(timezone.utc))
     is_read = Column(Boolean, default=False)
 

@@ -20,7 +20,7 @@ async def register_user(payload: UserCreate, db:AsyncSession = Depends(get_db)):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
         return await create_new_user(db, payload)
     except Exception as e:
-        logger.error(f"Error creating a new user")
+        logger.error(f"Error creating a new user: {e}")
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"message":str(e)})
 
 @router.post("/login", response_model=TokenResponse)

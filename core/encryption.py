@@ -1,3 +1,8 @@
+import warnings
+
+# Suppress passlib bcrypt version warning
+warnings.filterwarnings("ignore", message=".*error reading bcrypt version.*")
+
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 import os

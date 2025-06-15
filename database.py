@@ -17,8 +17,8 @@ Base = declarative_base()
 
 async def init_db():
     try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        # async with engine.begin() as conn:
+            # await conn.run_sync(Base.metadata.create_all)
         print("Database tables created successfully")
     except Exception as e:
         print(f"Error initializing database: {e}")

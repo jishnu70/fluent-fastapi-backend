@@ -30,7 +30,7 @@ def create_access_token(data:dict, expires_minutes:int=ExpireDates.ACCESS_TOKEN_
     expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
     to_encode.update({"exp": expire, "type": "access"})
 
-    return jwt.encode(to_encode, SECRET_KEY, ALGORITHM) # type: ignore
+    return jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
 
 # generate refresh token
 def create_refresh_token(data:dict, expires_day:int=ExpireDates.REFRESH_TOKEN_EXPIRE_DAYS.value):
@@ -38,25 +38,25 @@ def create_refresh_token(data:dict, expires_day:int=ExpireDates.REFRESH_TOKEN_EX
     expire = datetime.now(timezone.utc) + timedelta(days=expires_day)
     to_encode.update({"exp": expire, "type": "refresh"})
 
-    return jwt.encode(to_encode, SECRET_KEY, ALGORITHM) # type: ignore
+    return jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
 
 # decode refresh token
 def decode_jwt_token(token:str):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]) # type: ignore
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except JWTError:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid Refresh Token")
         return None
-    
+
 # create a new access token based on the refresh token
-def get_new_access_token_from_refresh_token(token:str):
+def get_new_access_token_from_refresh_token(token: str):
     payload = decode_jwt_token(token)
-    if payload and payload.get("type")=="refresh":
-         user_data = {
+    if payload and payload.get("type") == "refresh":
+        user_data = {
             "sub": payload.get("sub"),
             "user_id": payload.get("user_id")
         }
-        return create_access_token(data=user_data) # type: ignore
+        return create_access_token(data=user_data)
 
     return None

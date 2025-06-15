@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
-from typing import Optional
+from typing import Optional, Annotated
 from datetime import datetime
 import json
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,8 +24,8 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)]
 )
 
-@router.get("/partnerinfo", response_model=PartnerInfoResponse)
-async def get_partner_info(partnerID: int,user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+@router.get("/partnerinfo", response_model=None)
+async def get_partner_info(db: Annotated[AsyncSession, Depends(get_db)], partnerID: int) -> PartnerInfoResponse:
     try:
         result = await db.execute(select(User).filter_by(id=partnerID))
         partner = result.scalar_one_or_none()
@@ -36,7 +36,7 @@ async def get_partner_info(partnerID: int,user: User = Depends(get_current_user)
                 status.HTTP_404_NOT_FOUND,
                 detail={"message":"Partner does not exist"}
             )
-        return partner
+        return PartnerInfoResponse.model_validate(partner)
     except Exception as e:
         logger.error(e)
         raise HTTPException(
@@ -45,16 +45,16 @@ async def get_partner_info(partnerID: int,user: User = Depends(get_current_user)
         )
 
 @router.get("/chat_list", response_model=list[MessageChatList])
-async def get_chat_list(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    return await get_latest_messages_per_partner(db, user.id)
+async def get_chat_list(user: Annotated[object, Depends(get_current_user)], db: Annotated[AsyncSession, Depends(get_db)]):
+    return await get_latest_messages_per_partner(db, int(user.id))
 
 @router.get("/all_messages", response_model=list[MessageResponse])
 async def get_all_messages(
+    user: Annotated[object, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     partnerID: int,
     before: Optional[datetime] = None,
     limit: int = 20,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
 ):
     try:
         result = await db.execute(select(User).filter_by(id=partnerID))
@@ -76,10 +76,10 @@ async def get_all_messages(
 
 @router.websocket("/ws")
 async def core_chatting(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    chat_hub: Annotated[ChatHub, Depends(get_chatHub)],
     websocket: WebSocket,
     token: str,
-    db: AsyncSession = Depends(get_db),
-    chat_hub: ChatHub = Depends(get_chatHub)
 ):
     await websocket.accept()
 
@@ -134,10 +134,9 @@ async def core_chatting(
                     await websocket.send_text(f"Server error: {str(e)}")
 
     except WebSocketDisconnect:
-        logger.error("WebSocket disconnected")
-        raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"message":"Websocket disconnected"}
-        )
-    finally:
+        logger.info("WebSocket disconnected")  # Log as info
+        await chat_hub.disconnect(websocket, user_id)  # Move disconnect here
+    except Exception as e:
+        logger.error(f"WebSocket error: {str(e)}")
         await chat_hub.disconnect(websocket, user_id)
+        await websocket.close(code=status.WS_1011_INTERNAL_ERROR)

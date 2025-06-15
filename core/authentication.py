@@ -7,12 +7,14 @@ from models.User import User
 from schemas import UserSchema
 from core import encryption
 import logging
+from database import get_db
+from typing import Annotated
 
 logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-async def create_new_user(db: AsyncSession, user_data:UserSchema.UserCreate):
+async def create_new_user(db:Annotated[AsyncSession, Depends(get_db)], user_data:UserSchema.UserCreate):
     hash_password = encryption.hash_password(user_data.password)
     user = User.User(
         user_name = user_data.username,
@@ -25,15 +27,15 @@ async def create_new_user(db: AsyncSession, user_data:UserSchema.UserCreate):
     await db.refresh(user)
     return user.id
 
-async def get_user_by_username(db:AsyncSession, username:str):
+async def get_user_by_username(db:Annotated[AsyncSession, Depends(get_db)], username:str):
     try:
         user = await db.execute(select(User).filter_by(user_name=username))
         return user.scalar_one_or_none()
     except Exception as e:
         logger.error(f"Error fetching user by username: {e}")
         return None
-    
-async def get_current_user(db:AsyncSession, token:str = Depends(oauth2_scheme)):
+
+async def get_current_user(db:Annotated[AsyncSession, Depends(get_db)], token:Annotated[str, Depends(oauth2_scheme)]) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

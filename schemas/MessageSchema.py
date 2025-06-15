@@ -20,7 +20,7 @@ class MessageResponse(BaseModel):
 
     class Config:
         from_attributes = True  # Needed to return SQLAlchemy model instances
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class MessageChatList(BaseModel):
     partner: PartnerInfoResponse

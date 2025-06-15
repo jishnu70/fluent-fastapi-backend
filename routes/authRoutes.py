@@ -23,15 +23,14 @@ async def register_user(payload: UserCreate, db:AsyncSession = Depends(get_db)):
         logger.error(f"Error creating a new user")
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"message":str(e)})
 
-@router.post("/login", response_model=[TokenResponse])
+@router.post("/login", response_model=TokenResponse)
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     try:
         db_user = await get_user_by_username(db, form_data.username)
-        if not db_user or not verify_password(form_data.password, db_user.password): # type: ignore
+        if not db_user or not verify_password(form_data.password, db_user.password):
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"message": "invalid username"})
-        access_token = create_access_token({"sub":db_user.user_name}) # type: ignore
-        refresh_token = create_refresh_token({"sub": db_user.user_name}) # type: ignore
-        
+        access_token = create_access_token({"sub":db_user.user_name})
+        refresh_token = create_refresh_token({"sub": db_user.user_name})
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -40,8 +39,8 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Async
     except Exception as e:
         logger.error(f"Login failed: {str(e)}")
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
-    
-@router.post("/refresh", response_model=[TokenResponse])
+
+@router.post("/refresh", response_model=TokenResponse)
 async def get_new_access_token(request: RefreshRequest):
     try:
         new_access_token = get_new_access_token_from_refresh_token(request.refresh_token)

@@ -16,7 +16,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 async def create_new_user(db:Annotated[AsyncSession, Depends(get_db)], user_data:UserSchema.UserCreate):
     hash_password = encryption.hash_password(user_data.password)
-    user = User.User(
+    user = User(
         user_name = user_data.username,
         email = user_data.email,
         public_key = user_data.public_key,

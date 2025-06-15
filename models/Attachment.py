@@ -12,4 +12,4 @@ class Attachment(Base):
     file_url = Column(String)  # Or `ipfs_hash` if using IPFS
     encryption_key = Column(String, nullable=True)  # if using hybrid encryption
 
-    message = relationship("Message", backref="attachment")
+    message = relationship("Message", back_populates="attachment")

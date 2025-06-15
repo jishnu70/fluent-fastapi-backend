@@ -16,4 +16,4 @@ class Message(Base):
 
     sender = relationship("User", foreign_keys=[sender_id])
     receiver = relationship("User", foreign_keys=[receiver_id])
-    attachment = relationship("Attachment", backref="message")
+    attachment = relationship("Attachment", back_populates="message", uselist=False)

@@ -10,4 +10,4 @@ class User(Base):
     email = Column(String, unique=True)
     password = Column(String)
     public_key = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda:datetime.now(timezone.utc))

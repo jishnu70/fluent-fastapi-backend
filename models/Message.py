@@ -11,7 +11,7 @@ class Message(Base):
     receiver_id = Column(Integer, ForeignKey("users.id"))
     content = Column(String, nullable=False)
     message_type = Column(String, default="text")
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
+    timestamp = Column(DateTime(timezone=True), default=lambda:datetime.now(timezone.utc))
     is_read = Column(Boolean, default=False)
 
     sender = relationship("User", foreign_keys=[sender_id])

@@ -31,6 +31,7 @@ async def create_message(db: AsyncSession, payload:MessageCreate, senderID: int)
 
         return message
     except Exception as e:
+        await db.rollback()
         logger.error(e)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail={"message":str(e)})
 

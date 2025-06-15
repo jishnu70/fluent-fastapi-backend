@@ -15,17 +15,21 @@ logger = logging.getLogger(__name__)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 async def create_new_user(db:Annotated[AsyncSession, Depends(get_db)], user_data:UserSchema.UserCreate):
-    hash_password = encryption.hash_password(user_data.password)
-    user = User(
-        user_name = user_data.username,
-        email = user_data.email,
-        public_key = user_data.public_key,
-        password = hash_password,
-    )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return user.id
+    try:
+        hash_password = encryption.hash_password(user_data.password)
+        user = User(
+            user_name = user_data.username,
+            email = user_data.email,
+            public_key = user_data.public_key,
+            password = hash_password,
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        return user.id
+    except Exception as e:
+        await db.rollback()
+        logger.error(e)
 
 async def get_user_by_username(db:Annotated[AsyncSession, Depends(get_db)], username:str):
     try:

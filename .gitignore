@@ -1,3 +1,9 @@
 venv
 .env
 combine.txt
+alembic.ini
+*.pyc
+__pycache__/
+
+alembic/__pycache__/
+alembic/versions/__pycache__/

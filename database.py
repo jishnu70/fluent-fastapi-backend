@@ -26,7 +26,13 @@ async def init_db():
 
 async def get_db() -> AsyncIterator[AsyncSession]:
     async with async_session() as session:
-        yield session
+        try:
+            yield session
+        except Exception as e:
+            await session.rollback()
+            raise e
+        finally:
+            await session.close()
 
 async def close_db():
     try:

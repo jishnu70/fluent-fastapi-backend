@@ -18,7 +18,11 @@ async def register_user(payload: UserCreate, db:AsyncSession = Depends(get_db)):
         user = await get_user_by_username(db=db, username=payload.username)
         if user:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
-        return await create_new_user(db, payload)
+
+        user = await create_new_user(db, payload)
+        if not user:
+            raise HTTPException(status_code=500, detail="Failed to create user")
+        return {"id": user.id, "username": user.user_name, "email": user.email}
     except Exception as e:
         logger.error(f"Error creating a new user: {e}")
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"message":str(e)})

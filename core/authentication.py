@@ -26,7 +26,7 @@ async def create_new_user(db:Annotated[AsyncSession, Depends(get_db)], user_data
         db.add(user)
         await db.commit()
         await db.refresh(user)
-        return user.id
+        return user
     except Exception as e:
         await db.rollback()
         logger.error(e)

@@ -28,7 +28,7 @@ async def register_user(payload: UserCreate, db:AsyncSession = Depends(get_db)):
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"message":str(e)})
 
 @router.post("/login", response_model=TokenResponse)
-async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+async def login_user(form_data: UserLogin, db: AsyncSession = Depends(get_db)):
     try:
         db_user = await get_user_by_username(db, form_data.username)
         if not db_user or not verify_password(form_data.password, db_user.password):

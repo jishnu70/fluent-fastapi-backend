@@ -38,8 +38,14 @@ async def login_user(form_data: UserLogin, db: AsyncSession = Depends(get_db)):
         db_user = await get_user_by_username(db, form_data.username)
         if not db_user or not verify_password(form_data.password, db_user.password):
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"message": "invalid username"})
-        access_token = create_access_token({"sub":db_user.user_name})
-        refresh_token = create_refresh_token({"sub": db_user.user_name})
+        access_token = create_access_token({
+            "sub":db_user.user_name,
+            "user_id": db_user.id
+        })
+        refresh_token = create_refresh_token({
+            "sub": db_user.user_name,
+            "user_id": db_user.id
+        })
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,

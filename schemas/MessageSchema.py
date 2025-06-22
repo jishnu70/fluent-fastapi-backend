@@ -8,7 +8,7 @@ class MessageCreate(BaseModel):
     receiverID: int
     content: str
     messageType: str
-    attachmentID: Optional[int] = None
+    # attachmentID: Optional[int] = None
 
 class MessageResponse(BaseModel):
     senderID: int

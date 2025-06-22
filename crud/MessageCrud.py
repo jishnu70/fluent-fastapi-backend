@@ -23,7 +23,7 @@ async def create_message(db: AsyncSession, payload:MessageCreate, senderID: int)
             receiver_id=receiver.id,
             content=payload.content,
             message_type=payload.messageType,
-            attachment_id=payload.attachmentID if payload.attachmentID else None
+            # attachment_id=payload.attachmentID if payload.attachmentID else None
         )
         db.add(message)
         await db.commit()

@@ -47,25 +47,25 @@ async def get_partner_info(user: Annotated[object, Depends(get_current_user)], d
 async def get_chat_list(user: Annotated[object, Depends(get_current_user)], db: Annotated[AsyncSession, Depends(get_db)]):
     raw_messages = await get_latest_messages_per_partner(db, int(user.id))
 
-        chat_list = []
-        for msg in raw_messages:
-            partner_id = msg.receiver_id if msg.sender_id == user.id else msg.sender_id
-            partner_result = await db.execute(select(User).filter_by(id=partner_id))
-            partner = partner_result.scalar_one_or_none()
+    chat_list = []
+    for msg in raw_messages:
+        partner_id = msg.receiver_id if msg.sender_id == user.id else msg.sender_id
+        partner_result = await db.execute(select(User).filter_by(id=partner_id))
+        partner = partner_result.scalar_one_or_none()
 
-            if not partner:
-                continue
+        if not partner:
+            continue
 
-            # validate against pydantic models
-            partner_info = PartnerInfoResponse.model_validate(partner)
-            message_info = MessageResponse.model_validate(msg)
+        # validate against pydantic models
+        partner_info = PartnerInfoResponse.model_validate(partner)
+        message_info = MessageResponse.model_validate(msg)
 
-            chat_list.append(MessageChatList(
-                partner=partner_info,
-                message=message_info
-            ))
+        chat_list.append(MessageChatList(
+            partner=partner_info,
+            message=message_info
+        ))
 
-        return chat_list
+    return chat_list
 
 @router.get("/all_messages", response_model=list[MessageResponse])
 async def get_all_messages(

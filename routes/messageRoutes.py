@@ -137,7 +137,6 @@ async def core_chatting(
                         "receiverID": message.receiver_id,
                         "content": message.content,
                         "messageType": message.message_type,
-                        "attachmentID": message.attachment_id,
                         "timestamp": message.timestamp.isoformat(),
                     }
 

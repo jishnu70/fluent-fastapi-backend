@@ -1,5 +1,7 @@
 from typing import Dict, Set
 from fastapi import WebSocket
+import logging
+logger = logging.getLogger(__name__)
 
 class ChatHub:
     def __init__(self) -> None:
@@ -17,6 +19,7 @@ class ChatHub:
             del self.active_connections[user_id]
 
     async def send_to(self, user_id: int, data: dict):
+        logger.debug(f"Sending to {user_id}: {data}")
         for ws in self.active_connections.get(user_id, set()):
             await ws.send_json(data)
 

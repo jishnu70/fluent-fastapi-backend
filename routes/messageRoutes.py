@@ -59,7 +59,7 @@ async def get_chat_list(user: Annotated[object, Depends(get_current_user)], db: 
                 message=MessageResponse(
                     sender_id=msg.sender_id,
                     receiver_id=msg.receiver_id,
-                    content=msg.content,
+                    content=msg.sender_encrypted if msg.sender_id == user.id else msg.receiver_encrypted,
                     message_type=msg.message_type,
                     timestamp=msg.timestamp,
                 )

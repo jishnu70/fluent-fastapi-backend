@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
 import logging
+from typing import Annotated
+
+from sqlalchemy.future import select
 from core.encryption import verify_password, create_access_token, create_refresh_token, get_new_access_token_from_refresh_token
 from database import get_db
+from models import User
 from schemas.UserSchema import UserCreate, UserLogin
+from schemas.PartnerSchema import PartnerInfoResponse
 from schemas.TokenSchema import TokenResponse, RefreshRequest
 from core.authentication import create_new_user, get_current_user, get_user_by_username
 
@@ -59,3 +64,13 @@ async def get_new_access_token(request: RefreshRequest):
     except Exception as e:
         logger.error(f"Refresh failed: {str(e)}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh failed")
+
+@router.get("/get_all_users", response_model=list[PartnerInfoResponse])
+async def get_all_users(db:Annotated[AsyncSession, Depends(get_db)], search: str = Query(default="")):
+    stmt = select(User)
+    if search:
+        stmt = stmt.where(User.username.ilike(f"%{search}%"))
+
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+    return users

@@ -153,7 +153,7 @@ async def core_chatting(
                     response_data = {
                         "sender_id": message.sender_id,
                         "receiver_id": message.receiver_id,
-                        "content": message.content,
+                        "content": message.sender_encrypted if message.sender_id == user_id else message.receiver_encrypted,
                         "message_type": message.message_type,
                         "timestamp": message.timestamp.isoformat(),
                     }

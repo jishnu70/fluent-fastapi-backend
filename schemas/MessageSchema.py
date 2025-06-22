@@ -11,10 +11,10 @@ class MessageCreate(BaseModel):
     # attachmentID: Optional[int] = None
 
 class MessageResponse(BaseModel):
-    senderID: int = Field(alias="sender_id")
-    receiverID: int = Field(alias="receiver_id")
+    senderID: int = Field(...,alias="sender_id")
+    receiverID: int = Field(...,alias="receiver_id")
     content: str
-    messageType: str = Field(alias="message_type")
+    messageType: str = Field(...,alias="message_type")
     # attachmentID: Optional[int] = None
     timestamp: datetime
 

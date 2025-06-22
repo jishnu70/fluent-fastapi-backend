@@ -133,10 +133,10 @@ async def core_chatting(
                     message = await create_message(db, message_payload, user_id)
 
                     response_data = {
-                        "senderID": message.sender_id,
-                        "receiverID": message.receiver_id,
+                        "sender_id": message.sender_id,
+                        "receiver_id": message.receiver_id,
                         "content": message.content,
-                        "messageType": message.message_type,
+                        "message_type": message.message_type,
                         "timestamp": message.timestamp.isoformat(),
                     }
 

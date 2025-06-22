@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -11,11 +11,11 @@ class MessageCreate(BaseModel):
     # attachmentID: Optional[int] = None
 
 class MessageResponse(BaseModel):
-    senderID: int
-    receiverID: int
+    senderID: int = Field(alias="sender_id")
+    receiverID: int = Field(alias="receiver_id")
     content: str
-    messageType: str
-    attachmentID: Optional[int] = None
+    messageType: str = Field(alias="message_type")
+    # attachmentID: Optional[int] = None
     timestamp: datetime
 
     class Config:

@@ -21,11 +21,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/chat",
     tags=["chat"],
-    dependencies=[Depends(get_current_user)]
 )
 
 @router.get("/partnerinfo", response_model=None)
-async def get_partner_info(db: Annotated[AsyncSession, Depends(get_db)], partnerID: int) -> PartnerInfoResponse:
+async def get_partner_info(user: Annotated[object, Depends(get_current_user)], db: Annotated[AsyncSession, Depends(get_db)], partnerID: int) -> PartnerInfoResponse:
     try:
         result = await db.execute(select(User).filter_by(id=partnerID))
         partner = result.scalar_one_or_none()

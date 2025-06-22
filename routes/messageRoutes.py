@@ -104,12 +104,22 @@ async def core_chatting(
 
     try:
         payload = decode_jwt_token(token)
+        if payload is None or payload["user_id"] is None:
+            await websocket.close(code=4002)
+            return
+
         username = payload.get("sub")
         if not username:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
 
-        user = await get_user_by_username(db=db,username=username)
+        try:
+            user = await get_user_by_username(db=db,username=username)
+        except Exception as e:
+            print("Error fetching user by username:", e)
+            await websocket.close(code=4001)
+            return
+
         if not user:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
@@ -158,3 +168,5 @@ async def core_chatting(
         logger.error(f"WebSocket error: {str(e)}")
         await chat_hub.disconnect(websocket, user_id)
         await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
+    finally:
+            await db.close()

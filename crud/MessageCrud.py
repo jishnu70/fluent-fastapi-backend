@@ -70,23 +70,22 @@ async def get_messages(
 async def get_latest_messages_per_partner(db:AsyncSession, userID: int):
     try:
         result = await db.execute(
-            select(Message)
-            .where(
-                or_(Message.sender_id==userID, Message.receiver_id==userID)
+                select(Message)
+                .where(or_(Message.sender_id == userID, Message.receiver_id == userID))
+                .order_by(Message.timestamp.desc())
+                .options(joinedload(Message.attachment))
             )
-            .order_by(Message.timestamp.desc())
-            .options(joinedload(Message.attachment))
-        )
         messages = result.scalars().all()
 
         latest_messages = {}
 
-        for chat in messages:
-            partner_id = chat.receiver_id if (chat.sender_id == userID) else chat.sender_id
-            partner_result = await db.execute(select(User).filter_by(id=partner_id))
-            partner = partner_result.scalars().first()
-            if partner not in latest_messages:
-                latest_messages[partner] = chat
+        for msg in messages:
+            partner_id = msg.receiver_id if msg.sender_id == userID else msg.sender_id
+            if partner_id not in latest_messages:
+                partner_result = await db.execute(select(User).where(User.id == partner_id))
+                partner = partner_result.scalars().first()
+                if partner:
+                    latest_messages[partner_id] = (partner, msg)
 
         return list(latest_messages.values())
     except Exception as e:

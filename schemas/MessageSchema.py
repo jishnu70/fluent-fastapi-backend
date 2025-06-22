@@ -6,7 +6,8 @@ from schemas.PartnerSchema import PartnerInfoResponse
 
 class MessageCreate(BaseModel):
     receiverID: int
-    content: str
+    receiver_encrypted: str
+    sender_encrypted: str
     messageType: str
     # attachmentID: Optional[int] = None
 

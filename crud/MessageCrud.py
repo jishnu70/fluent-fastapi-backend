@@ -21,7 +21,8 @@ async def create_message(db: AsyncSession, payload:MessageCreate, senderID: int)
         message = Message(
             sender_id=senderID,
             receiver_id=receiver.id,
-            content=payload.content,
+            receiver_encrypted=payload.receiver_encrypted,
+            sender_encrypted=payload.sender_encrypted,
             message_type=payload.messageType,
             # attachment_id=payload.attachmentID if payload.attachmentID else None
         )

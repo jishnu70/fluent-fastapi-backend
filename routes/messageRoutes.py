@@ -85,7 +85,15 @@ async def get_all_messages(
                 status.HTTP_404_NOT_FOUND,
                 detail={"message":"Partner does not exist"}
             )
-        return await get_messages(db, user.id, partner.id)
+        return [
+            MessageResponse(
+                sender_id=msg.sender_id,
+                receiver_id=msg.receiver_id,
+                content=msg.sender_encrypted if msg.sender_id == user.id else msg.receiver_encrypted,
+                message_type=msg.message_type,
+                timestamp=msg.timestamp
+            ) for msg in await get_messages(db, user.id, partner.id)
+        ]
     except Exception as e:
         logger.error(e)
         raise HTTPException(

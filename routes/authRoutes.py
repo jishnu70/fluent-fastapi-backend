@@ -69,7 +69,7 @@ async def get_new_access_token(request: RefreshRequest):
 async def get_all_users(db:Annotated[AsyncSession, Depends(get_db)], search: str = Query(default="")):
     stmt = select(User)
     if search:
-        stmt = stmt.where(User.username.ilike(f"%{search}%"))
+        stmt = stmt.where(User.user_name.ilike(f"%{search}%"))
 
     result = await db.execute(stmt)
     users = result.scalars().all()

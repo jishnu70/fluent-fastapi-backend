@@ -150,17 +150,25 @@ async def core_chatting(
 
                     message = await create_message(db, message_payload, user_id)
 
-                    response_data = {
+                    receiver_response = {
                         "sender_id": message.sender_id,
                         "receiver_id": message.receiver_id,
-                        "content": message.sender_encrypted if message.sender_id == user_id else message.receiver_encrypted,
+                        "content": message.receiver_encrypted,
                         "message_type": message.message_type,
                         "timestamp": message.timestamp.isoformat(),
                     }
 
-                    await chat_hub.send_to(message.receiver_id, response_data)
+                    sender_response = {
+                        "sender_id": message.sender_id,
+                        "receiver_id": message.receiver_id,
+                        "content": message.sender_encrypted,
+                        "message_type": message.message_type,
+                        "timestamp": message.timestamp.isoformat(),
+                    }
 
-                    await chat_hub.send_to(user_id, response_data)
+                    await chat_hub.send_to(message.receiver_id, receiver_response)
+
+                    await chat_hub.send_to(user_id, sender_response)
 
                 except json.JSONDecodeError:
                     await websocket.send_text("Invalid JSON format")

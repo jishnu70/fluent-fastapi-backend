@@ -131,7 +131,7 @@ Server will run at `http://127.0.0.1:8000`
 - **FastAPI** (Python)
 - **SQLAlchemy** (ORM)
 - **JWT** (Authentication)
-- **SQLite/PostgreSQL** (Database)
+- **PostgreSQL** (Database)
 - **WebSockets** (Real-time messaging)
 
 ---

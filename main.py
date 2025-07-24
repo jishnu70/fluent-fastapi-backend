@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from database import init_db, close_db
 from routes.authRoutes import router as auth_router
 from routes.messageRoutes import router as message_router
+from routes.userRoutes import user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,6 +24,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(message_router)
+app.include_router(user_router)
 
 @app.get("/root")
 async def root_page():
